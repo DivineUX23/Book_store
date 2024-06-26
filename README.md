@@ -51,7 +51,7 @@ These services provide functionality for processing books, sending emails, and m
 ### 1. AI Service (BookProcessor)
 
 #### Purpose
-The AI Service, implemented through the `BookProcessor` class, processes book data and generates AI-based summaries and descriptions using OpenAI's GPT-3 model.
+The AI Service, implemented through the `BookProcessor` class, processes book data and generates AI-based summaries and descriptions using OpenAI's GPT-4 turbo model.
 
 #### Key Features
 - Extract text from PDF files

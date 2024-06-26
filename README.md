@@ -1,131 +1,463 @@
-## Bookstore API Project Documentation
+# Bookstore API Project Documentation
 
-This document outlines the structure, functionality, and implementation details of the Bookstore API project.
+This project implements a robust bookstore API powered by Flask, providing features like user authentication, book management, notification systems, and AI-powered functionalities. The project is designed for efficient deployment and scalability using Docker and Docker Compose. 
 
-### Key Features
+## Key Features
 
-* **Book Management:**
-    * Add, update, and delete books.
-    * Search for books by title, author, genre, ISBN, etc.
-    * Rate and review books.
-* **User Management:**
-    * Create, update, and delete user accounts.
-    * Manage user profiles, including reading lists and preferences.
-* **Recommendation System:**
-    * Generate personalized book recommendations based on user history and preferences.
-* **Notification System:**
-    * Receive notifications about new releases, recommendations, and other updates.
-* **File Upload:**
-    * Upload book files (PDFs) for storage and retrieval.
-* **API Integration:**
-    * Integrate with external APIs, such as OpenAI, for language processing tasks.
-* **Real-time Communication:**
-    * Use websockets for real-time updates and notifications.
-* **Security:**
-    * Implement secure authentication and authorization mechanisms.
-* **Scalability:**
-    * Design for scalability and handle high traffic volumes.
+* **User Authentication:** Securely register and login users and admins, allowing them to interact with the system.
+* **Book Management:** Add, update, delete, are only accessible to admins while retrieving information about books and placing orders are accessible to all users.
+* **Notification System:**  Send email notifications to users based on different events.
+* **AI Integration:** Leverage OpenAI API for book summaries and short description generation..
+* **File Upload:** Allow admins to upload book files (PDF) to the server.
+* **RESTful API:**  Provides a structured and consistent API for interacting with the bookstore data and placing orders.
+* **Dockerized Deployment:**  Encapsulated in Docker containers for easy deployment and management.
+* **Database Integration:** Uses MySQL to store and manage data.
+* **Message Queue:** Implements RabbitMQ to handle asynchronous tasks and notifications.
 
-### File Structure
+## File Structure
 
-The project is organized as follows:
+The project is structured as follows:
 
 ```
 bookstore-api/
-├── app.py             # Main Flask application entry point
-├── config.py          # Configuration settings for the application
-├── api/
-│   ├── models.py      # Database models for books, users, etc.
-│   ├── routes.py       # API routes and endpoints
-│   └── schemas.py     # Data schemas for API responses
-├── services/
-│   ├── notification_service.py # Handles real-time notifications
-│   └── recommendation_service.py # Handles recommendation logic
-├── messaging/
-│   ├── rabbitmq_handler.py # Handles RabbitMQ messaging
-│   └── tasks.py           # Background tasks for processing messages
-├── tests/               # Unit tests for the API
-├── Dockerfile          # Dockerfile for building the application container
-├── docker-compose.yml  # Docker Compose configuration for deploying the application
-├── .env                # Environment variables
+├── api
+│   ├── models.py
+│   ├── routes.py
+│   ├── schemas.py
+│   ├── __init__.py
+├── config.py
+├── messaging
+│   ├── rabbitmq_handler.py
+│   └── __init__.py
+├── services
+│   ├── notification_service.py
+│   └── __init__.py
+├── app.py
+├── Dockerfile
+└── docker-compose.yml
 ```
 
-### Services
 
-* **API Service:**
-    * Provides RESTful endpoints for interacting with the Bookstore API.
-    * Handles API requests and responses.
-    * Manages database interactions.
-* **Notification Service:**
-    * Sends real-time notifications to users using websockets.
-    * Utilizes a message queue (RabbitMQ) for asynchronous notifications.
-* **Recommendation Service:**
-    * Generates personalized book recommendations based on user data.
-    * Integrates with OpenAI for advanced natural language processing.
+## Overview
 
-### Database
+This documentation covers three essential services for a bookstore application:
 
-The application uses a MySQL database to store information about books, users, and other data.
+1. AI Service (BookProcessor)
+2. Email Service
+3. Notification Service
 
-* **Tables:**
-    * `books`: Stores book details, including title, author, genre, ISBN, etc.
-    * `users`: Stores user accounts, including usernames, passwords, and preferences.
-    * `ratings`: Stores user ratings for books.
-    * `reviews`: Stores user reviews for books.
-    * `recommendations`: Stores personalized book recommendations.
+These services provide functionality for processing books, sending emails, and managing real-time notifications.
 
-### Messaging
+### 1. AI Service (BookProcessor)
 
-The application utilizes RabbitMQ for asynchronous message passing between different services.
+#### Purpose
+The AI Service, implemented through the `BookProcessor` class, processes book data and generates AI-based summaries and descriptions using OpenAI's GPT-3 model.
 
-* **Message Queue:**
-    * The notification service uses RabbitMQ to send notifications asynchronously.
-    * The recommendation service uses RabbitMQ to process recommendations in the background.
-* **Message Consumers:**
-    * The notification service subscribes to the notification queue.
-    * Background tasks process messages from the recommendation queue.
+#### Key Features
+- Extract text from PDF files
+- Generate book summaries
+- Create brief book descriptions
 
-### Routers
+#### Usage
+```python
+from ai_service import BookProcessor
 
-The API service defines various routes to provide access to the application's functionality.
+processor = BookProcessor(book_id, app)
+summary = processor.process_book(mode='summary')
+description = processor.process_book(mode='description')
+```
 
-* **Book Routes:**
-    * `/api/books`: Get a list of books.
-    * `/api/books/<book_id>`: Get details for a specific book.
-    * `/api/books/search`: Search for books by keywords.
-    * `/api/books/add`: Add a new book.
-    * `/api/books/<book_id>/update`: Update a book.
-    * `/api/books/<book_id>/delete`: Delete a book.
-* **User Routes:**
-    * `/api/users`: Get a list of users (admin only).
-    * `/api/users/<user_id>`: Get details for a specific user.
-    * `/api/users/register`: Create a new user account.
-    * `/api/users/login`: Log in to an existing account.
-    * `/api/users/<user_id>/update`: Update user profile.
-* **Recommendation Routes:**
-    * `/api/recommendations`: Get personalized book recommendations.
-* **Notification Routes:**
-    * `/api/notifications`: Receive real-time notifications.
-* **File Upload Routes:**
-    * `/api/upload`: Upload book files (PDFs).
+#### Dependencies
+- PyPDF2
+- openai
+- Flask
+
+#### Configuration
+Ensure the OpenAI API key is set in the Flask app configuration:
+```python
+app.config['OPENAI_API_KEY'] = 'your-api-key-here'
+```
+
+### 2. Email Service
+
+#### Purpose
+The Email Service provides functionality to send emails with attached PDF books to users after a purchase.
+
+#### Key Features
+- Send emails with PDF attachments
+
+#### Usage
+```python
+from email_services import send_book_email
+
+success = send_book_email(email, file_path, book_title)
+```
+
+#### Dependencies
+- Flask-Mail
+
+#### Configuration
+Ensure the following configurations are set in the Flask app:
+```python
+app.config['MAIL_SERVER'] = 'your-mail-server'
+app.config['MAIL_PORT'] = your-mail-port
+app.config['MAIL_USERNAME'] = 'your-username'
+app.config['MAIL_PASSWORD'] = 'your-password'
+app.config['MAIL_USE_TLS'] = True  # or False
+app.config['MAIL_USE_SSL'] = False  # or True
+```
+
+### 3. Notification Service
+
+#### Purpose
+The Notification Service manages real-time notifications using WebSocket connections through Flask-SocketIO.
+
+#### Key Features
+- Handle client connections and disconnections
+- Send order status updates to specific users
+- Broadcast global notifications to all connected clients
+
+#### Usage
+```python
+from notification_service import init_socketio, send_order_status_update, send_global_notification
+
+# Initialize SocketIO with your Flask app
+init_socketio(app)
+
+# Send an order status update
+send_order_status_update(user_id, order_id, status)
+
+# Send a global notification
+send_global_notification(message)
+```
+
+#### Dependencies
+- Flask-SocketIO
+
+#### Configuration
+Initialize SocketIO with your Flask app:
+```python
+from notification_service import init_socketio
+
+init_socketio(app)
+```
+
+### Integration
+
+To integrate these services into your Flask application:
+
+1. Import the necessary functions and classes from each service.
+2. Initialize the services with your Flask app instance.
+3. Use the provided functions to process books, send emails, and manage notifications as needed in your routes or other parts of your application.
+
+
+### 4. Messaging Services
+
+#### Overview
+The messaging services handle various aspects of order processing, inventory management, and shipping. These services use RabbitMQ for asynchronous communication between different parts of the application.
+
+#### Components
+
+##### 4.1 Inventory Management
+
+**Purpose**: Manages the inventory updates based on order processing.
+
+**Key Features**:
+- Update inventory based on order data
+- Handle insufficient stock scenarios
+- Process inventory updates asynchronously
+
+**Usage**:
+```python
+from inventory_management import update_inventory, start_inventory_processing
+
+# Update inventory
+update_inventory(update_data)
+
+# Start inventory processing thread
+start_inventory_processing()
+```
+
+##### 4.2 Order Processing
+
+**Purpose**: Handles the creation and processing of orders.
+
+**Key Features**:
+- Create new orders
+- Process orders asynchronously
+- Update order status
+- Initiate inventory updates and shipping
+
+**Usage**:
+```python
+from order_processing import process_order, start_order_processing
+
+# Process a new order
+order = process_order(current_user, order_data)
+
+# Start order processing thread
+start_order_processing()
+```
+
+##### 4.3 Shipping Service
+
+**Purpose**: Manages the shipping process for orders.
+
+**Key Features**:
+- Simulate shipping process
+- Update order status
+- Send notifications about order status
+- Handle order delivery or cancellation
+
+**Usage**:
+```python
+from shipping_service import initiate_shipping
+
+# Initiate shipping for an order
+initiate_shipping(order_id)
+```
+
+##### 4.4 RabbitMQ Handler
+
+**Purpose**: Manages communication with RabbitMQ for asynchronous messaging.
+
+**Key Features**:
+- Publish orders and inventory updates to RabbitMQ queues
+- Consume messages from RabbitMQ queues
+- Handle connection to RabbitMQ
+
+**Usage**:
+```python
+from rabbitmq_handler import rabbitmq, setup_rabbitmq
+
+# Setup RabbitMQ with Flask app
+setup_rabbitmq(app)
+
+# Publish an order
+rabbitmq.publish_order(order_data)
+
+# Publish an inventory update
+rabbitmq.publish_inventory_update(update_data)
+
+# Start consuming orders
+rabbitmq.process_orders(order_callback)
+
+# Start consuming inventory updates
+rabbitmq.process_inventory_updates(inventory_callback)
+```
+
+#### Dependencies
+- pika (for RabbitMQ communication)
+- Flask
+- SQLAlchemy (implied by the use of `db.session`)
+
+#### Configuration
+Ensure the following configuration is set in your Flask app:
+
+```python
+app.config['RABBITMQ_URL'] = 'your-rabbitmq-url-here'
+```
+
+#### Integration
+
+To integrate these messaging services into your Flask application:
+
+1. Import the necessary functions from each service.
+2. Set up RabbitMQ handler with your Flask app.
+3. Start the order processing and inventory processing threads.
+4. Use the provided functions to process orders, update inventory, and manage shipping as needed in your routes or other parts of your application.
+
+#### Error Handling
+
+All services include basic error handling and logging. Ensure that your Flask app is configured with appropriate logging settings to capture any issues that may arise during the execution of these services.
+
+
+### 5. Main Application Structure
+
+#### Overview
+This section covers the main structure of the bookstore application, including the app configuration, database models, and the main application file.
+
+#### Components
+
+##### 5.1 Application Configuration (config.py)
+
+The `Config` class in `config.py` defines the configuration settings for the application. It uses the `python-decouple` library to manage environment variables.
+
+**Key Configurations**:
+- Database settings (MySQL with PyMySQL)
+- RabbitMQ URL
+- OpenAI API key
+- File upload settings
+- CORS settings
+- Email settings
+
+**Usage**:
+```python
+from config import Config
+
+app.config.from_object(Config)
+```
+
+##### 5.2 Database Models (models.py)
+
+The `models.py` file defines the database models using SQLAlchemy ORM.
+
+**Models**:
+1. **User**
+   - Attributes: id, username, email, password_hash, is_admin
+   - Methods: set_password, check_password
+
+2. **Book**
+   - Attributes: id, title, author, price, pdf_path, stock, description
+
+3. **Order**
+   - Attributes: id, user_id, book_id, status, created_at, items
+   - Methods: to_dict
+
+4. **OrderStatus** (Enum)
+   - Values: PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+
+**Usage**:
+```python
+from app import db
+from models import User, Book, Order, OrderStatus
+
+# Create a new user
+new_user = User(username="john_doe", email="john@example.com")
+new_user.set_password("secure_password")
+db.session.add(new_user)
+db.session.commit()
+```
+
+##### 5.3 Main Application (app.py)
+
+The `app.py` file is responsible for creating and configuring the Flask application.
+
+**Key Features**:
+- Initializes Flask extensions (SQLAlchemy, LoginManager, Mail, SocketIO, RabbitMQ)
+- Registers blueprints
+- Creates database tables
+- Sets up user loader for Flask-Login
+
+**Usage**:
+```python
+from app import create_app
+
+app = create_app()
+app.run()
+```
+
+#### Dependencies
+- Flask
+- Flask-SQLAlchemy
+- Flask-Login
+- Flask-Mail
+- Flask-SocketIO
+- python-decouple
+- PyMySQL
+
+#### Configuration
+Ensure you have a `.env` file or environment variables set for the configuration values used in `config.py`.
+
+#### Integration
+
+To integrate these components into your Flask application:
+
+1. Set up your environment variables or `.env` file with the necessary configuration values.
+2. Use the `create_app()` function to initialize your Flask application.
+3. Ensure your database is set up and the tables are created.
+4. Use the models to interact with your database.
+
+
+## Routes Module Documentation
+
+### Overview
+
+This module defines the API routes for a bookstore application using Flask. It includes functionality for user authentication, book management, order processing, and notifications.
+
+### Dependencies
+
+- Flask
+- Flask-Login
+- SQLAlchemy (implied by the use of `db.session`)
+- Custom services:
+  - `notification_service`
+  - `order_processing`
+  - `inventory_management`
+  - `ai_service`
+
+### Key Components
+
+#### Background Tasks
+
+- `start_background_tasks()`: Initializes background threads for order processing and inventory management.
+
+#### File Handling
+
+- `allowed_file(filename)`: Checks if a file has an allowed extension (currently only PDF).
+
+#### User Management
+
+- `/create_admin` (POST): Creates an administrator account.
+- `/register` (POST): Registers a new user.
+- `/login` (POST): Logs in an existing user.
+- `/logout` (GET): Logs out the current user.
+
+#### Book Management
+
+- `/books` (POST): Adds a new book to the bookstore.
+- `/books/<int:book_id>` (PATCH): Updates an existing book.
+- `/books/<int:book_id>` (DELETE): Deletes an existing book.
+- `/books` (GET): Retrieves a list of all books.
+- `/books/<int:book_id>` (GET): Retrieves a specific book by ID.
+- `/books/<int:book_id>/summary` (GET): Retrieves a summary of a book.
+
+#### Order Management
+
+- `/orders` (POST): Places an order for a book.
+- `/orders/<int:order_id>` (GET): Retrieves the status of an order.
+- `/orders/<int:order_id>/cancel` (POST): Cancels an order.
+
+#### Notifications
+
+- `/notify` (POST): Sends a global notification to all connected clients.
+
+### Authentication
+
+Most routes require authentication using Flask-Login. Admin-specific routes check for `current_user.is_admin`.
+
+### Error Handling
+
+The module includes error handling for various scenarios, such as missing fields, unauthorized access, and database errors.
+
+### File Upload
+
+Book PDFs can be uploaded and are saved securely using `werkzeug.utils.secure_filename`.
 
 ### AI Integration
 
-The application utilizes OpenAI for advanced language processing tasks, such as:
+The module uses an AI service (`BookProcessor`) to generate summaries for books.
 
-* **Generating book summaries:** Summarizing book descriptions to provide concise information.
-* **Generating recommendations:** Recommending books based on user preferences and book content.
-* **Creating book descriptions:** Auto-generating descriptions for books based on their content.
+### Usage Notes
 
-### API Documentation
+1. Ensure all required dependencies are installed.
+2. Set up the necessary database models (`User`, `Book`, `Order`, `OrderStatus`).
+3. Configure Flask application settings, especially `UPLOAD_FOLDER` and `MAX_CONTENT_LENGTH`.
+4. Implement the required service modules (`notification_service`, `order_processing`, `inventory_management`, `ai_service`).
+5. Integrate this routes module with your main Flask application.
 
-The API documentation is provided using Swagger or another suitable documentation tool. This documentation outlines the available endpoints, request and response structures, and usage examples.
 
-### Installation
+
+#### API Documentation
+
+The API documentation is available within the code as docstrings and can be expanded to a more comprehensive format using Postman.
+
+
+#### Installation
 
 1. **Clone the repository:** 
     ```bash
-    git clone https://github.com/your-username/bookstore-api.git
+    git clone https://github.com/DivineUX23/Book_store.git
     ```
 2. **Install dependencies:**
     ```bash
@@ -137,24 +469,18 @@ The API documentation is provided using Swagger or another suitable documentatio
     * Set the necessary environment variables as specified in the `config.py` file.
 4. **Set up the database:**
     * Create a MySQL database and configure the connection details in the `.env` file.
-    * Run the following command to create the database tables:
-        ```bash
-        flask db init
-        flask db migrate
-        flask db upgrade
-        ```
 
-### Usage
+#### Usage
 
 1. **Start the application:**
     ```bash
-    flask run
+    main app.py
     ```
 2. **Access the API endpoints:**
     * Use a REST client like Postman or curl to interact with the API.
     * Refer to the API documentation for details on available endpoints and usage.
 
-### Docker Deployment
+#### Docker Deployment
 
 1. **Build the Docker image:**
     ```bash
@@ -170,5 +496,3 @@ The API documentation is provided using Swagger or another suitable documentatio
     ```bash
     docker-compose down
     ```
-
-This detailed documentation provides a comprehensive understanding of the Bookstore API project, including its features, structure, services, database, messaging, routers, AI integration, installation, and usage instructions. 

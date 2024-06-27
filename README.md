@@ -38,7 +38,7 @@ bookstore-api/
 ```
 
 
-## Overview
+## Services
 
 This documentation covers three essential services for a bookstore application:
 
@@ -448,12 +448,219 @@ The module uses an AI service (`BookProcessor`) to generate summaries for books.
 
 
 
-#### API Documentation
+## API Documentation
 
-The API documentation is available within the code as docstrings and can be expanded to a more comprehensive format using Postman.
+### Authentication
+
+#### Login
+- **URL:** `/login`
+- **Method:** `POST`
+- **Data Params:** 
+  ```json
+  {
+    "email": "[valid email address]",
+    "password": "[password in plain text]"
+  }
+  ```
+- **Success Response:** 
+  - **Code:** 200
+  - **Content:** `{ "message": "Logged in successfully" }`
+- **Error Response:** 
+  - **Code:** 401
+  - **Content:** `{ "message": "Invalid username or password" }`
+
+#### Logout
+- **URL:** `/logout`
+- **Method:** `GET`
+- **Success Response:** 
+  - **Code:** 200
+  - **Content:** `{ "message": "Logged out successfully" }`
+
+### User Management
+
+#### Register User
+- **URL:** `/register`
+- **Method:** `POST`
+- **Data Params:** 
+  ```json
+  {
+    "username": "[username]",
+    "email": "[valid email address]",
+    "password": "[password in plain text]"
+  }
+  ```
+- **Success Response:** 
+  - **Code:** 201
+  - **Content:** `{ "message": "User registered successfully" }`
+- **Error Response:** 
+  - **Code:** 400
+  - **Content:** `{ "message": "Error registering user", "error": "[error message]" }`
+
+#### Create Admin
+- **URL:** `/create_admin`
+- **Method:** `POST`
+- **Data Params:** 
+  ```json
+  {
+    "username": "[username]",
+    "email": "[valid email address]",
+    "password": "[password in plain text]"
+  }
+  ```
+- **Success Response:** 
+  - **Code:** 201
+  - **Content:** `{ "message": "Admin account created successfully" }`
+- **Error Response:** 
+  - **Code:** 400
+  - **Content:** `{ "message": "Admin account already exists" }`
+
+### Book Management
+
+#### Add Book
+- **URL:** `/books`
+- **Method:** `POST`
+- **Headers:** `Content-Type: multipart/form-data`
+- **Data Params:** 
+  - `title`: String
+  - `author`: String
+  - `price`: Number
+  - `stock`: Number
+  - `pdf`: File (PDF)
+- **Success Response:** 
+  - **Code:** 201
+  - **Content:** `{ "message": "Book added successfully", "book_id": [book_id] }`
+- **Error Response:** 
+  - **Code:** 400
+  - **Content:** `{ "message": "Missing required fields" }`
+
+#### Update Book
+- **URL:** `/books/<book_id>`
+- **Method:** `PATCH`
+- **Headers:** `Content-Type: multipart/form-data`
+- **Data Params:** 
+  - `title`: String (optional)
+  - `author`: String (optional)
+  - `price`: Number (optional)
+  - `stock`: Number (optional)
+  - `pdf`: File (PDF) (optional)
+- **Success Response:** 
+  - **Code:** 200
+  - **Content:** `{ "message": "Book updated successfully" }`
+- **Error Response:** 
+  - **Code:** 500
+  - **Content:** `{ "message": "Error updating book", "error": "[error message]" }`
+
+#### Delete Book
+- **URL:** `/books/<book_id>`
+- **Method:** `DELETE`
+- **Success Response:** 
+  - **Code:** 200
+  - **Content:** `{ "message": "Book deleted successfully" }`
+- **Error Response:** 
+  - **Code:** 500
+  - **Content:** `{ "message": "Error deleting book", "error": "[error message]" }`
+
+#### Get All Books
+- **URL:** `/books`
+- **Method:** `GET`
+- **Success Response:** 
+  - **Code:** 200
+  - **Content:** Array of book objects
+    ```json
+    [
+      {
+        "id": 1,
+        "title": "Book Title",
+        "author": "Author Name",
+        "price": 19.99,
+        "stock": 10
+      },
+      ...
+    ]
+    ```
+
+#### Get Single Book
+- **URL:** `/books/<book_id>`
+- **Method:** `GET`
+- **Success Response:** 
+  - **Code:** 200
+  - **Content:** Book object
+    ```json
+    {
+      "id": 1,
+      "title": "Book Title",
+      "author": "Author Name",
+      "price": 19.99,
+      "stock": 10,
+      "description": "Book description"
+    }
+    ```
+
+#### Get Book Summary
+- **URL:** `/books/<book_id>/summary`
+- **Method:** `GET`
+- **Success Response:** 
+  - **Code:** 200
+  - **Content:** `{ "summary": "[book summary]" }`
+
+### Order Management
+
+#### Place Order
+- **URL:** `/orders`
+- **Method:** `POST`
+- **Data Params:** 
+  ```json
+  {
+    "book_id": 1,
+    "quantity": 2
+  }
+  ```
+- **Success Response:** 
+  - **Code:** 201
+  - **Content:** `{ "message": "Order placed successfully", "order_id": [order_id] }`
+- **Error Response:** 
+  - **Code:** 400
+  - **Content:** `{ "error": "Order processing failed, try again" }`
+
+#### Get Order Status
+- **URL:** `/orders/<order_id>`
+- **Method:** `GET`
+- **Success Response:** 
+  - **Code:** 200
+  - **Content:** `{ "status": "[order status]" }`
+- **Error Response:** 
+  - **Code:** 403
+  - **Content:** `{ "message": "Unauthorized" }`
+
+#### Cancel Order
+- **URL:** `/orders/<order_id>/cancel`
+- **Method:** `POST`
+- **Success Response:** 
+  - **Code:** 200
+  - **Content:** `{ "message": "Order cancelled successfully", "status": "[new status]" }`
+- **Error Response:** 
+  - **Code:** 400
+  - **Content:** `{ "message": "Order cannot be cancelled", "status": "[current status]" }`
+
+### Notifications
+
+#### Send Global Notification
+- **URL:** `/notify`
+- **Method:** `POST`
+- **Data Params:** 
+  ```json
+  {
+    "message": "[notification message]"
+  }
+  ```
+- **Success Response:** 
+  - **Code:** 200
+  - **Content:** `{ "message": "Notification sent" }`
+
+Note: All endpoints except for registration, login, and public book listings require authentication. Make sure to include the necessary authentication headers or cookies in your requests.
 
 
-#### Installation
+## Installation
 
 1. **Clone the repository:** 
     ```bash
@@ -470,7 +677,7 @@ The API documentation is available within the code as docstrings and can be expa
 4. **Set up the database:**
     * Create a MySQL database and configure the connection details in the `.env` file.
 
-#### Usage
+## Usage
 
 1. **Start the application:**
     ```bash
@@ -480,7 +687,7 @@ The API documentation is available within the code as docstrings and can be expa
     * Use a REST client like Postman or curl to interact with the API.
     * Refer to the API documentation for details on available endpoints and usage.
 
-#### Docker Deployment
+## Docker Deployment
 
 1. **Build the Docker image:**
     ```bash

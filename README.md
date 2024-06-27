@@ -37,7 +37,7 @@ This project implements a robust bookstore API powered by Flask, providing featu
 The project is structured as follows:
 
 ```
-bookstore-api/
+Book_store/
 ├── api
 │   ├── models.py
 │   ├── routes.py
@@ -622,11 +622,11 @@ Note: All endpoints except for registration, login, and public book listings req
 
 1. **Clone the repository:** 
     ```bash
-    git clone https://github.com/YourUsername/bookstore-api.git
+    git clone https://github.com/DivineUX23/Book_store.git
     ```
 2. **Install dependencies:**
     ```bash
-    cd bookstore-api
+    cd Book_store
     pip install -r requirements.txt
     ```
 3. **Configure environment variables:**
@@ -663,7 +663,7 @@ Note: All endpoints except for registration, login, and public book listings req
 
 1. **Build the Docker image:**
     ```bash
-    docker build -t bookstore-api .
+    docker build -t Book_store .
     ```
 2. **Start the Docker containers:**
     ```bash

@@ -30,7 +30,12 @@ bookstore-api/
 │   ├── rabbitmq_handler.py
 │   └── __init__.py
 ├── services
+│   ├── ai_service.py
+│   ├── email_services.py
+│   ├── inventory_management.py
 │   ├── notification_service.py
+│   ├── order_processing.py
+│   ├── shipping_service.py
 │   └── __init__.py
 ├── app.py
 ├── Dockerfile
